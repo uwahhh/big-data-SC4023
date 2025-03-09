@@ -3,6 +3,8 @@ import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
+        // Debug 1 Matriculation Number
+        // String[] matricNo = {"U2223198G"};
         String[] matricNo = {"U2223198G", "U2746929C", "U2346025D",};
         // Load Data
         ColumnarStorage storage = new ColumnarStorage();
@@ -19,23 +21,26 @@ public class Main {
         int yearLastDigit = matricProcessor.getYearDigit();
         int month = matricProcessor.getMonth();
         String town = matricProcessor.getTown();
+        // Target year is 2014 to 2023
         int targetYear = 2010 + yearLastDigit;
+        if(targetYear < 2014)
+            targetYear += 10;
         // Debug
-        // System.out.println("Matriculation Number: " + matricNo);
-        // System.out.println("Year Digit: " + yearLastDigit);
-        // System.out.println("Month: " + month);
-        // System.out.println("Town: " + town);
-        // System.out.println("Target Year: " + targetYear);
+        System.out.println("Matriculation Number: " + matricNo);
+        System.out.println("Year Digit: " + yearLastDigit);
+        System.out.println("Month: " + month);
+        System.out.println("Town: " + town);
+        System.out.println("Target Year: " + targetYear);
 
 
         // Get Filtered Prices
-        List<Double> filteredPrices = storage.filterPrices(town, yearLastDigit, month);
+        List<Double> filteredPrices = storage.filterPrices(town, targetYear, month);
 
         // Compute Statistics
         double minPrice = storage.getMinPrice(filteredPrices);
         double avgPrice = storage.getAveragePrice(filteredPrices);
         double stdDev = storage.getStdDev(filteredPrices);
-        double minPricePerSqm = storage.getMinPricePerSqm(town, yearLastDigit, month);
+        double minPricePerSqm = storage.getMinPricePerSqm(town, targetYear, month);
 
         // Write CSV Output
         generateCSV(matricNo, targetYear, month, town, minPrice, avgPrice, stdDev, minPricePerSqm);

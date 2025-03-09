@@ -11,9 +11,9 @@ public class MatriculationProcessor {
         char thirdLastDigitChar = matricNo.charAt(matricNo.length() - 4); // Third-last for town
 
         // Debug
-        // System.out.println("Last Digit: " + lastDigitChar);
-        // System.out.println("Second Last Digit: " + secondLastDigitChar);
-        // System.out.println("Third Last Digit: " + thirdLastDigitChar);
+        System.out.println("Last Digit: " + lastDigitChar);
+        System.out.println("Second Last Digit: " + secondLastDigitChar);
+        System.out.println("Third Last Digit: " + thirdLastDigitChar);
 
         // Convert to integers
         this.yearDigit = Character.getNumericValue(lastDigitChar);

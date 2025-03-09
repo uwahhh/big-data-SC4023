@@ -49,41 +49,53 @@ public class ColumnarStorage {
         
     }
 
-    // Helper method: Filter transactions
     private List<Integer> getFilteredIndexes(String targetTown, int year, int startMonth) {
         List<Integer> indexes = new ArrayList<>();
         int nextMonth = (startMonth == 12) ? 1 : startMonth + 1;
-        year += 2010; // Convert to actual year
-
+        int nextYear = (startMonth == 12) ? year + 1 : year;
+    
         // Debug
-        // System.out.println("Filtering for Town: " + targetTown + ", Year: " + year + ", Month: " + startMonth);
-        // System.out.println("Total Rows: " + towns.size());
-
+        System.out.println("Filtering for: " + targetTown + 
+                           " | Year: " + year + 
+                           " | Start Month: " + startMonth + 
+                           " | Next Month: " + nextMonth + 
+                           " | Next Year: " + nextYear);
+        
         for (int i = 0; i < towns.size(); i++) {
             String[] dateParts = months.get(i).split("-");
             int dataYear = Integer.parseInt(dateParts[0]);
             int dataMonth = Integer.parseInt(dateParts[1]);
-
+    
             if (towns.get(i).equalsIgnoreCase(targetTown) &&
                 floorAreas.get(i) >= 80 &&
-                dataYear == year &&
-                (dataMonth == startMonth || dataMonth == nextMonth)) {
+                ((dataYear == year && dataMonth == startMonth) ||
+                 (dataYear == nextYear && dataMonth == nextMonth))) {
+    
                 indexes.add(i);
             }
         }
+
+        // Debug
+        System.out.println("Filtered Indexes: " + indexes);
+        for (int index : indexes) {
+            System.out.println("Index: " + index + " | Month: " + months.get(index) + 
+                               " | Town: " + towns.get(index) + 
+                               " | Price: " + resalePrices.get(index));
+        }
+    
         return indexes;
     }
-
+    
     // Get list of resale prices matching criteria
     public List<Double> filterPrices(String targetTown, int year, int startMonth) {
         List<Integer> indexes = getFilteredIndexes(targetTown, year, startMonth);
         // Debug
-        // System.out.println("Indexes: " + indexes);
+        System.out.println("Indexes: " + indexes);
         List<Double> filteredPrices = new ArrayList<>();
 
         for (int index : indexes) {
             // Debug
-            // System.out.println("Index: " + index + ", Town: " + towns.get(index) + ", Year: " + year + ", Month: " + startMonth);
+            System.out.println("Index: " + index + ", Town: " + towns.get(index) + ", Year: " + year + ", Month: " + startMonth);
             filteredPrices.add(resalePrices.get(index));
         }
         return filteredPrices;

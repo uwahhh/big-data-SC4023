@@ -2,13 +2,19 @@ import java.io.*;
 import java.util.*;
 
 public class ColumnarStorage {
-    private List<String> months, towns;
-    private List<Double> floorAreas, resalePrices;
+    private List<String> months, towns, flat_types, street_name, storey_range, flat_model;
+    private List<Double> floorAreas, resalePrices, block, lease_commence_date;
 
     public ColumnarStorage() {
         months = new ArrayList<>();
         towns = new ArrayList<>();
+        flat_types = new ArrayList<>();
+        block = new ArrayList<>();
+        street_name = new ArrayList<>();
+        storey_range = new ArrayList<>();
         floorAreas = new ArrayList<>();
+        flat_model = new ArrayList<>();
+        lease_commence_date = new ArrayList<>();
         resalePrices = new ArrayList<>();
     }
 
@@ -30,7 +36,13 @@ public class ColumnarStorage {
                 try {
                     months.add(values[0].trim());
                     towns.add(values[1].trim());
+                    flat_types.add(values[2].trim());
+                    block.add(Double.parseDouble(values[3].trim()));
+                    street_name.add(values[4].trim());
+                    storey_range.add(values[5].trim());
                     floorAreas.add(Double.parseDouble(values[6].trim()));
+                    flat_model.add(values[7].trim());
+                    lease_commence_date.add(Double.parseDouble(values[8].trim()));
                     resalePrices.add(Double.parseDouble(values[9].trim()));
                 } catch (NumberFormatException e) {
                     System.err.println("Skipping invalid row: " + line);

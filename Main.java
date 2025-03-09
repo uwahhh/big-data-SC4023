@@ -4,8 +4,8 @@ import java.util.*;
 public class Main {
     public static void main(String[] args) {
         // Debug 1 Matriculation Number
-        // String[] matricNo = {"U2223198G"};
-        String[] matricNo = {"U2223198G", "U2746929C", "U2346025D",};
+        String[] matricNo = {"U2223191G"};
+        // String[] matricNo = {"U2223191G", "U2746929C", "U2346025D",};
         // Load Data
         ColumnarStorage storage = new ColumnarStorage();
         storage.loadCSV("ResalePricesSingapore.csv");
@@ -26,11 +26,11 @@ public class Main {
         if(targetYear < 2014)
             targetYear += 10;
         // Debug
-        System.out.println("Matriculation Number: " + matricNo);
-        System.out.println("Year Digit: " + yearLastDigit);
-        System.out.println("Month: " + month);
-        System.out.println("Town: " + town);
-        System.out.println("Target Year: " + targetYear);
+        // System.out.println("Matriculation Number: " + matricNo);
+        // System.out.println("Year Digit: " + yearLastDigit);
+        // System.out.println("Month: " + month);
+        // System.out.println("Town: " + town);
+        // System.out.println("Target Year: " + targetYear);
 
 
         // Get Filtered Prices

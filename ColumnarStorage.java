@@ -2,8 +2,8 @@ import java.io.*;
 import java.util.*;
 
 public class ColumnarStorage {
-    private List<String> months, towns, flat_types, street_name, storey_range, flat_model;
-    private List<Double> floorAreas, resalePrices, block, lease_commence_date;
+    private List<String> months, towns, flat_types, street_name, storey_range, flat_model, block;
+    private List<Double> floorAreas, resalePrices, lease_commence_date;
 
     public ColumnarStorage() {
         months = new ArrayList<>();
@@ -37,7 +37,7 @@ public class ColumnarStorage {
                     months.add(values[0].trim());
                     towns.add(values[1].trim());
                     flat_types.add(values[2].trim());
-                    block.add(Double.parseDouble(values[3].trim()));
+                    block.add(values[3].trim());
                     street_name.add(values[4].trim());
                     storey_range.add(values[5].trim());
                     floorAreas.add(Double.parseDouble(values[6].trim()));
@@ -67,11 +67,11 @@ public class ColumnarStorage {
         int nextYear = (startMonth == 12) ? year + 1 : year;
     
         // Debug
-        System.out.println("Filtering for: " + targetTown + 
-                           " | Year: " + year + 
-                           " | Start Month: " + startMonth + 
-                           " | Next Month: " + nextMonth + 
-                           " | Next Year: " + nextYear);
+        // System.out.println("Filtering for: " + targetTown + 
+        //                    " | Year: " + year + 
+        //                    " | Start Month: " + startMonth + 
+        //                    " | Next Month: " + nextMonth + 
+        //                    " | Next Year: " + nextYear);
         
         for (int i = 0; i < towns.size(); i++) {
             String[] dateParts = months.get(i).split("-");
@@ -88,12 +88,12 @@ public class ColumnarStorage {
         }
 
         // Debug
-        System.out.println("Filtered Indexes: " + indexes);
-        for (int index : indexes) {
-            System.out.println("Index: " + index + " | Month: " + months.get(index) + 
-                               " | Town: " + towns.get(index) + 
-                               " | Price: " + resalePrices.get(index));
-        }
+        // System.out.println("Filtered Indexes: " + indexes);
+        // for (int index : indexes) {
+        //     System.out.println("Index: " + index + " | Month: " + months.get(index) + 
+        //                        " | Town: " + towns.get(index) + 
+        //                        " | Price: " + resalePrices.get(index));
+        // }
     
         return indexes;
     }
@@ -102,12 +102,12 @@ public class ColumnarStorage {
     public List<Double> filterPrices(String targetTown, int year, int startMonth) {
         List<Integer> indexes = getFilteredIndexes(targetTown, year, startMonth);
         // Debug
-        System.out.println("Indexes: " + indexes);
+        // System.out.println("Indexes: " + indexes);
         List<Double> filteredPrices = new ArrayList<>();
 
         for (int index : indexes) {
             // Debug
-            System.out.println("Index: " + index + ", Town: " + towns.get(index) + ", Year: " + year + ", Month: " + startMonth);
+            // System.out.println("Index: " + index + ", Town: " + towns.get(index) + ", Year: " + year + ", Month: " + startMonth);
             filteredPrices.add(resalePrices.get(index));
         }
         return filteredPrices;

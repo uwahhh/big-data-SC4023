@@ -97,12 +97,12 @@ public class ColumnarStorage {
             dataAnalyzer.setFloorAreas(floorAreas);
             dataAnalyzer.setResalePrices(resalePrices);
             
-            // Initialize TownZoneMapper with the loaded towns
-            if (!towns.isEmpty()) {
-                String[] townsArray = towns.toArray(new String[0]);
-                TownZoneMapper.initialize(townsArray);
-                System.out.println("Initialized TownZoneMapper with " + townsArray.length + " towns from column store");
-            }
+            // // Initialize TownZoneMapper with the loaded towns
+            // if (!towns.isEmpty()) {
+            //     String[] townsArray = towns.toArray(new String[0]);
+            //     TownZoneMapper.initialize(townsArray);
+            //     System.out.println("Initialized TownZoneMapper with " + townsArray.length + " towns from column store");
+            // }
             
             System.out.println("Column store loaded successfully from " + inputDir);
         } catch (IOException e) {

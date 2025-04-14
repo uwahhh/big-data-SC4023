@@ -53,24 +53,24 @@ public class Main {
         System.out.println("Target Town: " + targetTown);
         System.out.println("Target Year: " + targetYear);
         
-        // Process using town index
-        System.out.println("\nProcessing with town index:");
-        List<Double> filteredPricesWithIndex = storage.getDataAnalyzer().filterPricesWithZone(targetTown, targetYear, month);
-        System.out.println("Number of properties found with town index: " + filteredPricesWithIndex.size());
+        // Process using year index
+        System.out.println("\nProcessing with year index:");
+        List<Double> filteredPricesWithIndex = storage.getDataAnalyzer().filterPricesWithYearIndex(targetTown, targetYear, month);
+        System.out.println("Number of properties found with year index: " + filteredPricesWithIndex.size());
         
-        // Process without town index
-        System.out.println("\nProcessing without town index:");
-        List<Double> filteredPricesWithoutIndex = storage.getDataAnalyzer().filterPricesWithoutZone(targetTown, targetYear, month);
-        System.out.println("Number of properties found without town index: " + filteredPricesWithoutIndex.size());
+        // Process without year index
+        System.out.println("\nProcessing without year index:");
+        List<Double> filteredPricesWithoutIndex = storage.getDataAnalyzer().filterPricesWithoutYearIndex(targetTown, targetYear, month);
+        System.out.println("Number of properties found without year index: " + filteredPricesWithoutIndex.size());
         
         // Compare results
         if (filteredPricesWithIndex.size() != filteredPricesWithoutIndex.size()) {
             System.out.println("\nWARNING: Different number of properties found using different methods!");
-            System.out.println("With town index: " + filteredPricesWithIndex.size());
-            System.out.println("Without town index: " + filteredPricesWithoutIndex.size());
+            System.out.println("With year index: " + filteredPricesWithIndex.size());
+            System.out.println("Without year index: " + filteredPricesWithoutIndex.size());
         }
         
-        // Use the results from town index method (more efficient)
+        // Use the results from year index method (more efficient)
         if (!filteredPricesWithIndex.isEmpty()) {
             // Compute Statistics
             double minPrice = storage.getDataAnalyzer().getMinPrice(filteredPricesWithIndex);

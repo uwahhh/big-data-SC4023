@@ -56,43 +56,61 @@ public class PropertyDataAnalyzer {
             }
             
             // Initialize TownZoneMapper after loading all data
-            if (!towns.isEmpty()) {
-                String[] townsArray = towns.toArray(new String[0]);
-                TownZoneMapper.initialize(townsArray);
-                System.out.println("Initialized TownZoneMapper with " + townsArray.length + " towns from CSV");
+            if (!months.isEmpty()) {
+                String[] monthsArray = months.toArray(new String[0]);
+                TownZoneMapper.initialize(monthsArray);
+                System.out.println("Initialized TownZoneMapper with " + monthsArray.length + " months from CSV");
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private List<Integer> getFilteredIndexesWithZone(String targetTown, int year, int startMonth) {
+    private List<Integer> getFilteredIndexesWithYearIndex(String targetTown, int year, int startMonth) {
         List<Integer> indexes = new ArrayList<>();
         int nextMonth = (startMonth == 12) ? 1 : startMonth + 1;
         int nextYear = (startMonth == 12) ? year + 1 : year;
     
-        // Get all indexes for the target town from TownZoneMapper
-        List<Integer> Zonees = TownZoneMapper.getZonees(targetTown);
-        System.out.println("Using town index filtering for " + targetTown + " with " + Zonees.size() + " indexes");
+        // Get all indexes for the target year from TownZoneMapper
+        List<Integer> yearIndexes = TownZoneMapper.getYearIndexes(year);
+        System.out.println("Using year index filtering for year " + year + " with " + yearIndexes.size() + " indexes");
+        // System.out.println("yearrrrr"+yearIndexes);
+        // Only iterate through indexes for the target year
+        for (int i : yearIndexes) {
+            // Check if this record is for the target town
+            if (towns.get(i).equals(targetTown)) {
+                String[] dateParts = months.get(i).split("-");
+                int dataMonth = Integer.parseInt(dateParts[1]);
         
-        // Only iterate through indexes for the target town
-        for (int i : Zonees) {
-            String[] dateParts = months.get(i).split("-");
-            int dataYear = Integer.parseInt(dateParts[0]);
-            int dataMonth = Integer.parseInt(dateParts[1]);
-    
-            if (floorAreas.get(i) >= 80 &&
-                ((dataYear == year && dataMonth == startMonth) ||
-                 (dataYear == nextYear && dataMonth == nextMonth))) {
-    
+                if (floorAreas.get(i) >= 80 && 
+                ((dataMonth == nextMonth || dataMonth == startMonth)))  {
                 indexes.add(i);
+            }
+            }
+        }
+        
+        // Also check the next year if needed
+        if (nextYear != year) {
+            List<Integer> nextYearIndexes = TownZoneMapper.getYearIndexes(nextYear);
+            for (int i : nextYearIndexes) {
+                // Check if this record is for the target town
+                if (towns.get(i).equals(targetTown)) {
+                    String[] dateParts = months.get(i).split("-");
+                    int dataMonth = Integer.parseInt(dateParts[1]);
+            
+                    if (floorAreas.get(i) >= 80 && 
+                        ((dataMonth == nextMonth || dataMonth == startMonth)))  {
+                        indexes.add(i);
+                    }
+
+                }
             }
         }
     
         return indexes;
     }
 
-    private List<Integer> getFilteredIndexesWithoutZone(String targetTown, int year, int startMonth) {
+    private List<Integer> getFilteredIndexesWithoutYearIndex(String targetTown, int year, int startMonth) {
         List<Integer> indexes = new ArrayList<>();
         int nextMonth = (startMonth == 12) ? 1 : startMonth + 1;
         int nextYear = (startMonth == 12) ? year + 1 : year;
@@ -116,9 +134,9 @@ public class PropertyDataAnalyzer {
         return indexes;
     }
     
-    // Get list of resale prices matching criteria using town index
-    public List<Double> filterPricesWithZone(String targetTown, int year, int startMonth) {
-        List<Integer> indexes = getFilteredIndexesWithZone(targetTown, year, startMonth);
+    // Get list of resale prices matching criteria using year index
+    public List<Double> filterPricesWithYearIndex(String targetTown, int year, int startMonth) {
+        List<Integer> indexes = getFilteredIndexesWithYearIndex(targetTown, year, startMonth);
         List<Double> filteredPrices = new ArrayList<>();
 
         for (int index : indexes) {
@@ -127,15 +145,20 @@ public class PropertyDataAnalyzer {
         return filteredPrices;
     }
 
-    // Get list of resale prices matching criteria without using town index
-    public List<Double> filterPricesWithoutZone(String targetTown, int year, int startMonth) {
-        List<Integer> indexes = getFilteredIndexesWithoutZone(targetTown, year, startMonth);
+    // Get list of resale prices matching criteria without using year index
+    public List<Double> filterPricesWithoutYearIndex(String targetTown, int year, int startMonth) {
+        List<Integer> indexes = getFilteredIndexesWithoutYearIndex(targetTown, year, startMonth);
         List<Double> filteredPrices = new ArrayList<>();
 
         for (int index : indexes) {
             filteredPrices.add(resalePrices.get(index));
         }
         return filteredPrices;
+    }
+
+    // Keep the original method for backward compatibility
+    public List<Double> filterPrices(String targetTown, int year, int startMonth) {
+        return filterPricesWithYearIndex(targetTown, year, startMonth);
     }
 
     // Compute minimum price
@@ -157,7 +180,7 @@ public class PropertyDataAnalyzer {
 
     // Get minimum price per square meter for a town
     public double getMinPricePerSqm(String targetTown, int year, int startMonth) {
-        List<Integer> indexes = getFilteredIndexesWithZone(targetTown, year, startMonth);
+        List<Integer> indexes = getFilteredIndexesWithYearIndex(targetTown, year, startMonth);
         
         double minPricePerSqm = Double.MAX_VALUE;
         for (int index : indexes) {
@@ -208,11 +231,11 @@ public class PropertyDataAnalyzer {
     
     // Rebuild the town index map after loading data from column store
     private void rebuildZoneMap() {
-        // Initialize the TownZoneMapper with the towns array
-        if (!towns.isEmpty()) {
-            String[] townsArray = towns.toArray(new String[0]);
-            TownZoneMapper.initialize(townsArray);
-            System.out.println("Initialized TownZoneMapper with " + townsArray.length + " towns");
+        // Initialize the TownZoneMapper with the months array
+        if (!months.isEmpty()) {
+            String[] monthsArray = months.toArray(new String[0]);
+            TownZoneMapper.initialize(monthsArray);
+            System.out.println("Initialized TownZoneMapper with " + monthsArray.length + " months");
         }
     }
 } 

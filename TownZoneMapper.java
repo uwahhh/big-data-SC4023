@@ -4,78 +4,98 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class TownZoneMapper {
-    private static final Map<String, List<Integer>> Zonees = new HashMap<>();
+    private static final Map<Integer, List<Integer>> yearIndexes = new HashMap<>();
     
     /**
-     * Initialize the town indexes
-     * @param towns Array of town names in the order they appear in the data
+     * Initialize the year indexes
+     * @param months Array of month strings in the format "YYYY-MM"
      */
-    public static void initialize(String[] towns) {
-        if (towns == null || towns.length == 0) {
+    public static void initialize(String[] months) {
+        if (months == null || months.length == 0) {
             return;
         }
         
         // Clear existing mappings
-        Zonees.clear();
+        yearIndexes.clear();
         
-        // Find all occurrences of each town
-        for (int i = 0; i < towns.length; i++) {
-            String town = towns[i].toUpperCase();
-            Zonees.computeIfAbsent(town, k -> new ArrayList<>()).add(i);
+        // Find all occurrences of each year
+        for (int i = 0; i < months.length; i++) {
+            String monthStr = months[i];
+            if (monthStr.contains("-")) {
+                String[] parts = monthStr.split("-");
+                if (parts.length >= 1) {
+                    try {
+                        int year = Integer.parseInt(parts[0]);
+                        yearIndexes.computeIfAbsent(year, k -> new ArrayList<>()).add(i);
+                    } catch (NumberFormatException e) {
+                        System.err.println("Invalid year format in: " + monthStr);
+                    }
+                }
+            }
         }
         
-        // Debug: Print the number of indexes for each town
-        System.out.println("Town index mapping initialized with " + Zonees.size() + " towns");
-        for (Map.Entry<String, List<Integer>> entry : Zonees.entrySet()) {
-            System.out.println("Town: " + entry.getKey() + ", Indexes: " + entry.getValue().size());
+        // Debug: Print the number of indexes for each year
+        System.out.println("Year index mapping initialized with " + yearIndexes.size() + " years");
+        for (Map.Entry<Integer, List<Integer>> entry : yearIndexes.entrySet()) {
+            System.out.println("Year: " + entry.getKey() + ", Indexes: " + entry.getValue().size());
         }
     }
     
     /**
-     * Get all indexes for a given town
-     * @param town The town name in uppercase
-     * @return List of indexes where this town appears, or empty list if town doesn't exist
+     * Get all indexes for a given year
+     * @param year The year to get indexes for
+     * @return List of indexes for the given year, or empty list if year doesn't exist
      */
-    public static List<Integer> getZonees(String town) {
-        List<Integer> indexes = Zonees.getOrDefault(town.toUpperCase(), new ArrayList<>());
-        System.out.println("Found " + indexes.size() + " indexes for town: " + town);
+    public static List<Integer> getYearIndexes(int year) {
+        List<Integer> indexes = yearIndexes.getOrDefault(year, new ArrayList<>());
+        System.out.println("Found " + indexes.size() + " indexes for year: " + year);
         return indexes;
     }
     
     /**
-     * Get the first index for a given town
-     * @param town The town name in uppercase
-     * @return The first index where this town appears, or -1 if the town doesn't exist
+     * Get the first index for a given year
+     * @param year The year to get the first index for
+     * @return The first index for the given year, or -1 if the year doesn't exist
      */
-    public static int getFirstZone(String town) {
-        List<Integer> indexes = Zonees.get(town.toUpperCase());
+    public static int getFirstYearIndex(int year) {
+        List<Integer> indexes = yearIndexes.get(year);
         return indexes != null && !indexes.isEmpty() ? indexes.get(0) : -1;
     }
     
     /**
-     * Check if a town exists in our mapping
-     * @param town The town name to check
-     * @return true if the town exists in our mapping, false otherwise
+     * Get the last index for a given year
+     * @param year The year to get the last index for
+     * @return The last index for the given year, or -1 if the year doesn't exist
      */
-    public static boolean hasTown(String town) {
-        return Zonees.containsKey(town.toUpperCase());
+    public static int getLastYearIndex(int year) {
+        List<Integer> indexes = yearIndexes.get(year);
+        return indexes != null && !indexes.isEmpty() ? indexes.get(indexes.size() - 1) : -1;
     }
     
     /**
-     * Get all available towns
-     * @return Array of all town names
+     * Check if a year exists in our mapping
+     * @param year The year to check
+     * @return true if the year exists in our mapping, false otherwise
      */
-    public static String[] getAllTowns() {
-        return Zonees.keySet().toArray(new String[0]);
+    public static boolean hasYear(int year) {
+        return yearIndexes.containsKey(year);
     }
     
     /**
-     * Get the number of occurrences of a town
-     * @param town The town name to check
-     * @return The number of times this town appears in the data
+     * Get all available years
+     * @return Array of all years
      */
-    public static int getTownCount(String town) {
-        List<Integer> indexes = Zonees.get(town.toUpperCase());
+    public static Integer[] getAllYears() {
+        return yearIndexes.keySet().toArray(new Integer[0]);
+    }
+    
+    /**
+     * Get the number of occurrences of a year
+     * @param year The year to check
+     * @return The number of times this year appears in the data
+     */
+    public static int getYearCount(int year) {
+        List<Integer> indexes = yearIndexes.get(year);
         return indexes != null ? indexes.size() : 0;
     }
 } 

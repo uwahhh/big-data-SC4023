@@ -65,101 +65,268 @@ public class PropertyDataAnalyzer {
             e.printStackTrace();
         }
     }
-
-    private List<Integer> getFilteredIndexesWithYearIndex(String targetTown, int year, int startMonth) {
-        List<Integer> indexes = new ArrayList<>();
-        int nextMonth = (startMonth == 12) ? 1 : startMonth + 1;
-        int nextYear = (startMonth == 12) ? year + 1 : year;
     
-        // Get all indexes for the target year from TownZoneMapper
-        List<Integer> yearIndexes = TownZoneMapper.getYearIndexes(year);
-        System.out.println("Using year index filtering for year " + year + " with " + yearIndexes.size() + " indexes");
-        // System.out.println("yearrrrr"+yearIndexes);
-        // Only iterate through indexes for the target year
-        for (int i : yearIndexes) {
-            // Check if this record is for the target town
-            if (towns.get(i).equals(targetTown)) {
-                String[] dateParts = months.get(i).split("-");
-                int dataMonth = Integer.parseInt(dateParts[1]);
+    // Get list of resale prices matching criteria using year index
+    public List<List<Double>> filterPricesWithYearIndexSharedScan(String targetTown, int year, int startMonth) {
         
-                if (floorAreas.get(i) >= 80 && 
-                ((dataMonth == nextMonth || dataMonth == startMonth)))  {
-                indexes.add(i);
-            }
-            }
-        }
-        
-        // Also check the next year if needed
-        if (nextYear != year) {
-            List<Integer> nextYearIndexes = TownZoneMapper.getYearIndexes(nextYear);
-            for (int i : nextYearIndexes) {
-                // Check if this record is for the target town
-                if (towns.get(i).equals(targetTown)) {
+        int nextMonth = (startMonth == 12) ? 1 : startMonth + 1;
+        int startYearIndex = TownZoneMapper.getStartIndex(year);
+        int endYearIndex = TownZoneMapper.getEndIndex(year);
+        List<Double> allPrices = new ArrayList<>();
+        List<Integer> filteredPrices = new ArrayList<>();
+        List<Double> allArea = new ArrayList<>();
+
+        for (int i = startYearIndex; i <= endYearIndex; i++) {
+       
                     String[] dateParts = months.get(i).split("-");
                     int dataMonth = Integer.parseInt(dateParts[1]);
-            
-                    if (floorAreas.get(i) >= 80 && 
-                        ((dataMonth == nextMonth || dataMonth == startMonth)))  {
-                        indexes.add(i);
-                    }
+                
+                        if (towns.get(i).equals(targetTown)) {
+                    if (floorAreas.get(i) >= 80 &&
+                        (dataMonth == startMonth || dataMonth == nextMonth)) {
 
+                        allPrices.add(resalePrices.get(i));
+                        allArea.add(floorAreas.get(i));
+                        // System.out.println(filteredPrices);
+                        }
+                    }
                 }
+                // System.out.println("filss"+filteredPrices.size());
+                //     for (int j=0;j<filteredPrices.size();j++)
+                //     {
+                //         // System.out.println("fil"+filteredPrices.size());
+                //             allPrices.add(resalePrices.get(filteredPrices.get(j)));
+                //             allArea.add(floorAreas.get(filteredPrices.get(j)));
+                //             // minPrice = getMinPrice(allPrices);
+                //             // avgPrice = roundToTwoDecimalPlaces(getAveragePrice(allPrices));
+                //             // sdPrice = roundToTwoDecimalPlaces(calculateStandardDeviation(allPrices));
+                //             // sdArea = roundToTwoDecimalPlaces(getMinPricePerSqm(allPrices,allArea));
+                      
+                // }
+                
+        
+            // List<Double> test = sharedScan(targetTown, year, startMonth);
+            // System.out.println("1num"+allPrices.size());
+        return Arrays.asList(allPrices,allArea);
+    }
+    
+    public List<List<Double>> filterPricesWithYearIndex(String targetTown, int year, int startMonth) {
+        
+        int nextMonth = (startMonth == 12) ? 1 : startMonth + 1;
+        int startYearIndex = TownZoneMapper.getStartIndex(year);
+        int endYearIndex = TownZoneMapper.getEndIndex(year);
+        List<Double> allPrices = new ArrayList<>();
+        List<Integer> filteredPrices = new ArrayList<>();
+        List<Double> allArea = new ArrayList<>();
+
+
+        for (int i = startYearIndex; i <= endYearIndex; i++) {
+                    filteredPrices.add(i);
+                    // System.out.println(filteredPrices);
+        }
+
+        for (int m = filteredPrices.size() - 1; m >= 0; m--) {
+       
+            String[] dateParts = months.get(filteredPrices.get(m)).split("-");
+            
+            int dataMonth = Integer.parseInt(dateParts[1]);
+        
+            if (dataMonth != startMonth && dataMonth != nextMonth) {
+                    filteredPrices.remove(m);
+                    // System.out.println(filteredPrices);
+            }
+
+        }
+
+        for (int k = filteredPrices.size() - 1; k >= 0; k--) {
+            if (!towns.get(filteredPrices.get(k)).equals(targetTown)) {
+                filteredPrices.remove(k);
             }
         }
+
+        for (int l = filteredPrices.size() - 1; l >= 0; l--) {
+            if (floorAreas.get(filteredPrices.get(l)) < 80) {
+                filteredPrices.remove(l);
+            }
+        }
+
+                    for (int j=0;j<filteredPrices.size();j++)
+                    {
+                        // System.out.println("fil"+filteredPrices.size());
+                            allPrices.add(resalePrices.get(filteredPrices.get(j)));
+                            allArea.add(floorAreas.get(filteredPrices.get(j)));
+                            // minPrice = getMinPrice(allPrices);
+                            // avgPrice = roundToTwoDecimalPlaces(getAveragePrice(allPrices));
+                            // sdPrice = roundToTwoDecimalPlaces(calculateStandardDeviation(allPrices));
+                            // sdArea = roundToTwoDecimalPlaces(getMinPricePerSqm(allPrices,allArea));
+                      
+                }
+
+                
+        
+            // List<Double> test = sharedScan(targetTown, year, startMonth);
+            // System.out.println("2num"+filteredPrices.size());
+        return Arrays.asList(allPrices,allArea);
+    }
+  
+
+
+    // Get list of resale prices matching criteria without using year index
+    public List<List<Double>> filterPricesWithoutYearIndex(String targetTown, int year, int startMonth) {
+        List<Double> allPrices = new ArrayList<>();
+        List<Integer> filteredPrices = new ArrayList<>();
+        List<Double> allArea = new ArrayList<>();
+        int nextMonth = (startMonth == 12) ? 1 : startMonth + 1;
+
+        for (int i = 0; i < towns.size(); i++) {
+            if (towns.get(i).equals(targetTown)) {
+                   filteredPrices.add(i);
+            }
+        }
+      
+        for (int m = filteredPrices.size() - 1; m >= 0; m--) {
+            String[] dateParts = months.get(filteredPrices.get(m)).split("-");
+
+            int dataMonth = Integer.parseInt(dateParts[1]);
+             if (dataMonth != startMonth && dataMonth != nextMonth) {
+                filteredPrices.remove(m);
+            }
+        }
+        for (int k = filteredPrices.size() - 1; k >= 0; k--) {
+            String[] dateParts = months.get(filteredPrices.get(k)).split("-");
+            int dataYear = Integer.parseInt(dateParts[0]);
+
+            if (dataYear != year) {
+                filteredPrices.remove(k);
+            }
+        }
+        for(int l = filteredPrices.size() - 1; l >= 0; l--) {
+            if (floorAreas.get(filteredPrices.get(l)) < 80) {
+                filteredPrices.remove(l);
+            }
+        }
+        // System.out.println("3num"+filteredPrices.size());
+        for (int j=0;j<filteredPrices.size();j++)
+                    {
+                        // System.out.println("fil"+filteredPrices.size());
+                            allPrices.add(resalePrices.get(filteredPrices.get(j)));
+                            allArea.add(floorAreas.get(filteredPrices.get(j)));
+                      
+                }
+
     
-        return indexes;
+        return Arrays.asList(allPrices, allArea);
     }
 
-    private List<Integer> getFilteredIndexesWithoutYearIndex(String targetTown, int year, int startMonth) {
-        List<Integer> indexes = new ArrayList<>();
+    public List<List<Double>> filterPricesWithoutYearIndexSharedScan(String targetTown, int year, int startMonth) {
+        List<Integer> filteredPrices = new ArrayList<>();
         int nextMonth = (startMonth == 12) ? 1 : startMonth + 1;
         int nextYear = (startMonth == 12) ? year + 1 : year;
-        
-        // Traditional filtering - iterate through all records
+        List<Double> allPrices = new ArrayList<>();
+        List<Double> allArea = new ArrayList<>();
+
         for (int i = 0; i < towns.size(); i++) {
             if (towns.get(i).equals(targetTown)) {
                 String[] dateParts = months.get(i).split("-");
                 int dataYear = Integer.parseInt(dateParts[0]);
                 int dataMonth = Integer.parseInt(dateParts[1]);
-        
+    
                 if (floorAreas.get(i) >= 80 &&
                     ((dataYear == year && dataMonth == startMonth) ||
                      (dataYear == nextYear && dataMonth == nextMonth))) {
-        
-                    indexes.add(i);
+                    
+                    allPrices.add(resalePrices.get(i));
+                    allArea.add(floorAreas.get(i));
                 }
             }
         }
-        
-        return indexes;
+// System.out.println("4num"+allPrices.size());
+    
+        return Arrays.asList(allPrices, allArea);
     }
     
-    // Get list of resale prices matching criteria using year index
-    public List<Double> filterPricesWithYearIndex(String targetTown, int year, int startMonth) {
-        List<Integer> indexes = getFilteredIndexesWithYearIndex(targetTown, year, startMonth);
-        List<Double> filteredPrices = new ArrayList<>();
+    // public List<Double> sharedScan(String targetTown, int year, int startMonth) {
+    //         List<Double> matchingPriceData = new ArrayList<>();
+    //         List<Double> matchingAreaData = new ArrayList<>();
+    //         List<Double> allPrices = new ArrayList<>();
+    //         List<Double> allArea = new ArrayList<>();
+    //         double minPrice = Double.MAX_VALUE;
+    //         double totalPrice = 0.0;
+    //         double minArea = Double.MAX_VALUE;
+    //         double totalArea = 0.0;
+    //         double avgPrice = Double.MAX_VALUE;
+    //         double sdPrice = Double.MAX_VALUE;
+    //         double sdArea = Double.MAX_VALUE;
+       
+    //         List<Integer> filteredPrices = new ArrayList<>();
 
-        for (int index : indexes) {
-            filteredPrices.add(resalePrices.get(index));
-        }
-        return filteredPrices;
-    }
+    //         // int nextMonth = (startMonth == 12) ? 1 : startMonth + 1;
+    //         // System.out.println(filteredPrices);
+    //             try {
 
-    // Get list of resale prices matching criteria without using year index
-    public List<Double> filterPricesWithoutYearIndex(String targetTown, int year, int startMonth) {
-        List<Integer> indexes = getFilteredIndexesWithoutYearIndex(targetTown, year, startMonth);
-        List<Double> filteredPrices = new ArrayList<>();
+    //                 // int minprices.isEmpty() ? 0 : Collections.min(prices);
 
-        for (int index : indexes) {
-            filteredPrices.add(resalePrices.get(index));
-        }
-        return filteredPrices;
-    }
+    //                 // for (int i = startYearIndex; i <= endYearIndex; i++) {
+    //                 //     if (towns.get(i).equals(targetTown)) {
+    //                 //         String[] dateParts = months.get(i).split("-");
+    //                 //         int dataMonth = Integer.parseInt(dateParts[1]);
+                
+    //                 //         if (floorAreas.get(i) >= 80 &&
+    //                 //             (dataMonth == startMonth || dataMonth == nextMonth)) {
+    //                 //             filteredPrices.add(resalePrices.get(i));
+    //                 //             prices.add(i);
+    //                 //         }
+    //                 //     }
+    //                 // }
+    //             //     for (int i = startYearIndex; i <= endYearIndex; i++) {
+       
+    //             //         String[] dateParts = months.get(i).split("-");
+    //             //         int dataMonth = Integer.parseInt(dateParts[1]);
+                    
+    //             //             if (towns.get(i).equals(targetTown)) {
+    //             //         if (floorAreas.get(i) >= 80 &&
+    //             //             (dataMonth == startMonth || dataMonth == nextMonth)) {
+    //             //             filteredPrices.add(i);
+    //             //             // System.out.println(filteredPrices);
+    //             //             }
+    //             //         }
+                  
+    //             // }
+                    
+    //                 for (int i=0;i<filteredPrices.size();i++)
+    //                 {
+    //                     System.out.println("fil"+filteredPrices.size());
+    //                             allPrices.add(resalePrices.get(filteredPrices.get(i)));
+    //                             allArea.add(floorAreas.get(filteredPrices.get(i)));
+    //                             minPrice = getMinPrice(allPrices);
+    //                             avgPrice = roundToTwoDecimalPlaces(getAveragePrice(allPrices));
+    //                             sdPrice = roundToTwoDecimalPlaces(calculateStandardDeviation(allPrices));
+    //                            sdArea = roundToTwoDecimalPlaces(getMinPricePerSqm(allPrices,allArea));
+                      
+    //             }
+    //             //  System.out.println(allPrices);
+    //             // System.out.println("fil"+filteredPrices.size());
+    //                 // System.out.println("min"+minPrice);
+    //                 // System.out.println("avg"+avgPrice);
+    //                 // System.out.println("sd"+sdPrice);
+    //                 // System.out.println("min"+sdArea);
+    //             } catch (Exception e) {
+    //                 System.out.println("Error reading files: " + e.getMessage());
+    //                 return null;
+    //             }
+        
 
-    // Keep the original method for backward compatibility
-    public List<Double> filterPrices(String targetTown, int year, int startMonth) {
-        return filterPricesWithYearIndex(targetTown, year, startMonth);
-    }
+    
+    //         double avgArea = roundToTwoDecimalPlaces(totalArea / 10);
+
+
+    //         return Arrays.asList(minPrice, minArea, avgPrice, avgArea, sdPrice, sdArea);
+    //     }
+
+
+    // public List<Double> filterPrices(String targetTown, int year, int startMonth) {
+    //     return filterPricesWithYearIndex(targetTown, year, startMonth);
+    // }
 
     // Compute minimum price
     public double getMinPrice(List<Double> prices) {
@@ -179,12 +346,12 @@ public class PropertyDataAnalyzer {
     }
 
     // Get minimum price per square meter for a town
-    public double getMinPricePerSqm(String targetTown, int year, int startMonth) {
-        List<Integer> indexes = getFilteredIndexesWithYearIndex(targetTown, year, startMonth);
+    public double getMinPricePerSqm(List<Double> prices, List<Double> area) {
+        // List<Integer> indexes = filterPricesWithYearIndex(targetTown, year, startMonth);
         
         double minPricePerSqm = Double.MAX_VALUE;
-        for (int index : indexes) {
-            double pricePerSqm = resalePrices.get(index) / floorAreas.get(index);
+        for (int i=0; i<prices.size();i++) {
+            double pricePerSqm = prices.get(i) / area.get(i);
             if (pricePerSqm < minPricePerSqm) {
                 minPricePerSqm = pricePerSqm;
             }

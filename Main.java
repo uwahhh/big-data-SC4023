@@ -42,7 +42,6 @@ public class Main {
         String targetTown = matricProcessor.getTown();
         long startTime;
         long endTime;
-        long elapsedTime;
 
         // Target year is 2014 to 2023
         int targetYear = 2010 + yearLastDigit;
@@ -56,6 +55,10 @@ public class Main {
         System.out.println("Target Town: " + targetTown);
         System.out.println("Target Year: " + targetYear);
         
+        // Initialize TownZoneMapper
+        TownZoneMapper.initialize(storage.getDataAnalyzer().getMonths().toArray(new String[0]));
+
+
         // Process using year index with sharedscan
         System.out.println("\nProcessing with year index with sharedscan:");
         startTime = System.nanoTime();

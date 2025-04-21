@@ -55,12 +55,6 @@ public class DataAnalyzer {
                 }
             }
             
-            // Initialize TownZoneMapper after loading all data
-            if (!months.isEmpty()) {
-                String[] monthsArray = months.toArray(new String[0]);
-                TownZoneMapper.initialize(monthsArray);
-                System.out.println("Initialized TownZoneMapper with " + monthsArray.length + " months from CSV");
-            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -68,17 +62,23 @@ public class DataAnalyzer {
     
     // Get list of resale prices matching criteria using year index (shared scan)
     public List<Integer> filterPricesWithYearIndexSharedScan(String targetTown, int year, int startMonth) {
-        int startIdx = TownZoneMapper.getStartIndex(year);
-        int endIdx   = TownZoneMapper.getEndIndex(year);
-        List<Integer> filtered    = new ArrayList<>();
-        List<Integer> townIndices = ZoneMap.getOrDefault(targetTown, Collections.emptyList());
-        for (int i = startIdx; i <= endIdx; i++) {
-            for (int idx : townIndices) {
-                if (idx == i && matchesWindow(idx, year, startMonth, true)) {
-                    filtered.add(idx);
-                }
+        List<Integer> filtered = new ArrayList<>();
+        List<Integer> yearIndices = TownZoneMapper.getYearIndices(year);
+        // List<Integer> townIndices = ZoneMap.getOrDefault(targetTown, Collections.emptyList());
+        if (yearIndices == null || yearIndices.isEmpty()) {
+            System.out.println("Filtered prices with year index shared scan: 0");
+            return filtered;
+        }
+        int nextMonth = (startMonth == 12) ? 1 : startMonth + 1;
+        for (int idx : yearIndices) {
+
+            String[] parts = months.get(idx).split("-");
+            int dataMonth = Integer.parseInt(parts[1]);
+            if (targetTown.equals(towns.get(idx)) && floorAreas.get(idx) >= 80 && (dataMonth == startMonth || dataMonth == nextMonth)) {
+                filtered.add(idx);
             }
         }
+        System.out.println("Filtered prices with year index shared scan: " + filtered.size());
         return filtered;
     }
     
@@ -103,11 +103,10 @@ public class DataAnalyzer {
     // Get list of resale prices matching criteria using year index
     public List<Integer> filterPricesWithYearIndex(String targetTown, int year, int startMonth) {
         int nextMonth = (startMonth == 12) ? 1 : startMonth + 1;
-        int startIdx  = TownZoneMapper.getStartIndex(year);
-        int endIdx    = TownZoneMapper.getEndIndex(year);
+        List<Integer> yearIndices = TownZoneMapper.getYearIndices(year);
         List<Integer> filtered = new ArrayList<>();
 
-        for (int i = startIdx; i <= endIdx; i++) filtered.add(i);
+        for (int i = yearIndices.get(0); i <= yearIndices.get(yearIndices.size() - 1); i++) filtered.add(i);
 
         filtered.removeIf(idx -> {
             int m = Integer.parseInt(months.get(idx).split("-")[1]);
@@ -130,6 +129,17 @@ public class DataAnalyzer {
         }
         // then keep only the target town
         filtered.removeIf(idx -> !towns.get(idx).equals(targetTown));
+        return filtered;
+    }
+    
+    // Filter by month candidates using precomputed month indices (focus on months only)
+    public List<Integer> filterByMonthCandidates(List<Integer> monthCandidates, int year, int startMonth) {
+        List<Integer> filtered = new ArrayList<>();
+        for (int idx : monthCandidates) {
+            if (matchesWindow(idx, year, startMonth, true)) {
+                filtered.add(idx);
+            }
+        }
         return filtered;
     }
     
@@ -180,6 +190,17 @@ public class DataAnalyzer {
         return minPpsm == Double.MAX_VALUE ? 0 : minPpsm;
     }
     
+    // private boolean matchesYearWindow(int idx, int startMonth) {
+    //     String[] parts = months.get(idx).split("-");
+
+    //     int dataMonth = Integer.parseInt(parts[1]);
+    //     int nextMonth = (startMonth == 12) ? 1 : startMonth + 1;
+    //     boolean inWindow;
+
+    //         inWindow = (dataMonth == startMonth || dataMonth == nextMonth);
+
+    //     return floorAreas.get(idx) >= 80 && inWindow;
+    // }
     // Helper to check date and area criteria
     private boolean matchesWindow(int idx, int year, int startMonth, boolean useYearIndex) {
         String[] parts = months.get(idx).split("-");
@@ -217,12 +238,17 @@ public class DataAnalyzer {
     // Setters for loading data from column store
     public void setMonths(List<String> months) {
         this.months = months;
-        rebuildZoneMap();
+        // rebuildZoneMap(); // mapping handled in Main
     }
     
     public void setTowns(List<String> towns) {
         this.towns = towns;
-        rebuildZoneMap();
+        // Rebuild town-to-indices map for filtering
+        ZoneMap.clear();
+        for (int i = 0; i < towns.size(); i++) {
+            ZoneMap.computeIfAbsent(towns.get(i), k -> new ArrayList<>()).add(i);
+        }
+        // rebuildZoneMap(); // mapping handled in Main
     }
     
     public void setFloorAreas(List<Double> floorAreas) {
@@ -231,15 +257,5 @@ public class DataAnalyzer {
     
     public void setResalePrices(List<Double> resalePrices) {
         this.resalePrices = resalePrices;
-    }
-    
-    // Rebuild the town index map after loading data from column store
-    private void rebuildZoneMap() {
-        // Initialize the TownZoneMapper with the months array
-        if (!months.isEmpty()) {
-            String[] monthsArray = months.toArray(new String[0]);
-            TownZoneMapper.initialize(monthsArray);
-            System.out.println("Initialized TownZoneMapper with " + monthsArray.length + " months");
-        }
     }
 }

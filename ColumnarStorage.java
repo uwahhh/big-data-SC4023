@@ -2,10 +2,10 @@ import java.io.*;
 import java.util.*;
 
 public class ColumnarStorage {
-    private PropertyDataAnalyzer dataAnalyzer;
+    private DataAnalyzer dataAnalyzer;
     
     public ColumnarStorage() {
-        dataAnalyzer = new PropertyDataAnalyzer();
+        dataAnalyzer = new DataAnalyzer();
     }
     
     // Load CSV file with error handling
@@ -14,7 +14,7 @@ public class ColumnarStorage {
     }
     
     // Get the data analyzer instance
-    public PropertyDataAnalyzer getDataAnalyzer() {
+    public DataAnalyzer getDataAnalyzer() {
         return dataAnalyzer;
     }
     
@@ -51,7 +51,7 @@ public class ColumnarStorage {
     public void loadColumnStore(String inputDir) {
         try {
             // Clear existing data
-            dataAnalyzer = new PropertyDataAnalyzer();
+            dataAnalyzer = new DataAnalyzer();
             
             // Load each column from its file
             List<String> months = new ArrayList<>();
@@ -59,51 +59,49 @@ public class ColumnarStorage {
             List<Double> floorAreas = new ArrayList<>();
             List<Double> resalePrices = new ArrayList<>();
             
-            // Read months
-            try (BufferedReader reader = new BufferedReader(new FileReader(inputDir + "/months.txt"))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    months.add(line.trim());
+            // Load each column in parallel, dropping incomplete rows
+            try (
+                BufferedReader monthsReader = new BufferedReader(new FileReader(inputDir + "/months.txt"));
+                BufferedReader townsReader  = new BufferedReader(new FileReader(inputDir + "/towns.txt"));
+                BufferedReader areasReader  = new BufferedReader(new FileReader(inputDir + "/floor_areas.txt"));
+                BufferedReader pricesReader = new BufferedReader(new FileReader(inputDir + "/resale_prices.txt"))
+            ) {
+                String monthLine, townLine, areaLine, priceLine;
+                while ((monthLine = monthsReader.readLine()) != null
+                    && (townLine  = townsReader.readLine())   != null
+                    && (areaLine  = areasReader.readLine())   != null
+                    && (priceLine = pricesReader.readLine())  != null) {
+                    monthLine = monthLine.trim();
+                    townLine  = townLine.trim();
+                    areaLine  = areaLine.trim();
+                    priceLine = priceLine.trim();
+
+                    if (monthLine.isEmpty() || townLine.isEmpty()
+                        || areaLine.isEmpty()  || priceLine.isEmpty()) {
+                        System.err.println("Skipping incomplete row due to missing cell: "
+                            + monthLine + ", " + townLine + ", " + areaLine + ", " + priceLine);
+                        continue;  // drop incomplete row
+                    }
+                    try {
+                        double area  = Double.parseDouble(areaLine);
+                        double price = Double.parseDouble(priceLine);
+                        months.add(monthLine);
+                        towns.add(townLine);
+                        floorAreas.add(area);
+                        resalePrices.add(price);
+                    } catch (NumberFormatException e) {
+                        System.err.println("Skipping invalid numeric row: "
+                            + monthLine + ", " + townLine
+                            + ", " + areaLine + ", " + priceLine);
+                    }
                 }
             }
             
-            // Read towns
-            try (BufferedReader reader = new BufferedReader(new FileReader(inputDir + "/towns.txt"))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    towns.add(line.trim());
-                }
-            }
-            
-            // Read floor areas
-            try (BufferedReader reader = new BufferedReader(new FileReader(inputDir + "/floor_areas.txt"))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    floorAreas.add(Double.parseDouble(line.trim()));
-                }
-            }
-            
-            // Read resale prices
-            try (BufferedReader reader = new BufferedReader(new FileReader(inputDir + "/resale_prices.txt"))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    resalePrices.add(Double.parseDouble(line.trim()));
-                }
-            }
-            
-            // Load the data into the PropertyDataAnalyzer
+            // Load the data into the DataAnalyzer
             dataAnalyzer.setMonths(months);
             dataAnalyzer.setTowns(towns);
             dataAnalyzer.setFloorAreas(floorAreas);
             dataAnalyzer.setResalePrices(resalePrices);
-            
-            // // Initialize TownZoneMapper with the loaded towns
-            // if (!towns.isEmpty()) {
-            //     String[] townsArray = towns.toArray(new String[0]);
-            //     TownZoneMapper.initialize(townsArray);
-            //     System.out.println("Initialized TownZoneMapper with " + townsArray.length + " towns from column store");
-            // }
-            
             System.out.println("Column store loaded successfully from " + inputDir);
         } catch (IOException e) {
             System.err.println("Error loading column store: " + e.getMessage());

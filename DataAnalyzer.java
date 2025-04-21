@@ -1,12 +1,12 @@
 import java.io.*;
 import java.util.*;
 
-public class PropertyDataAnalyzer {
+public class DataAnalyzer {
     private List<String> months, towns, flat_types, street_name, storey_range, flat_model, block;
     private List<Double> floorAreas, resalePrices, lease_commence_date;
     private Map<String, List<Integer>> ZoneMap;  // Map to store all indexes for each town
 
-    public PropertyDataAnalyzer() {
+    public DataAnalyzer() {
         months = new ArrayList<>();
         towns = new ArrayList<>();
         flat_types = new ArrayList<>();

@@ -56,44 +56,64 @@ public class Main {
         System.out.println("Target Town: " + targetTown);
         System.out.println("Target Year: " + targetYear);
         
-        // Process using year index
+        // Process using year index with sharedscan
         System.out.println("\nProcessing with year index with sharedscan:");
         startTime = System.nanoTime();
         List<Integer> filterPricesWithYearIndexSharedScan = storage.getDataAnalyzer().filterPricesWithYearIndexSharedScan(targetTown, targetYear, month);
         endTime = System.nanoTime();
-        elapsedTime = endTime - startTime;
-        System.out.println("Elapsed time for filtering with year index with sharedscan: " + elapsedTime + " nanoseconds");
+        long timeSharedScan = endTime - startTime;
+        System.out.println("Elapsed time for filtering with year index with sharedscan: " + timeSharedScan + " nanoseconds");
 
+        // Process using year index without sharedscan
         System.out.println("\nProcessing with year index without sharedscan:");
         startTime = System.nanoTime();
         List<Integer> filterPricesWithYearIndex = storage.getDataAnalyzer().filterPricesWithYearIndex(targetTown, targetYear, month);
         endTime = System.nanoTime();
-        elapsedTime = endTime - startTime;
-        System.out.println("Elapsed time for filtering with year index without sharedscan: " + elapsedTime + " nanoseconds");
+        long timeNoSharedScan = endTime - startTime;
+        System.out.println("Elapsed time for filtering with year index without sharedscan: " + timeNoSharedScan + " nanoseconds");
 
-        // Process without year index
+        // Process without year index with shared scan
         System.out.println("\nProcessing without year index with shared scan:");
         startTime = System.nanoTime();
         List<Integer> filterPricesWithoutYearIndexSharedScan = storage.getDataAnalyzer().filterPricesWithoutYearIndexSharedScan(targetTown, targetYear, month);
         endTime = System.nanoTime();
-        elapsedTime = endTime - startTime;
-        System.out.println("Elapsed time for filtering without year index with shared scan: " + elapsedTime + " nanoseconds");
+        long timeNoIndexSharedScan = endTime - startTime;
+        System.out.println("Elapsed time for filtering without year index with shared scan: " + timeNoIndexSharedScan + " nanoseconds");
 
+        // Process without year index without sharedscan
         System.out.println("\nProcessing without year index without sharedscan:");
         startTime = System.nanoTime();
         List<Integer> filterPricesWithoutYearIndex = storage.getDataAnalyzer().filterPricesWithoutYearIndex(targetTown, targetYear, month);
         endTime = System.nanoTime();
-        elapsedTime = endTime - startTime;
-        System.out.println("Elapsed time for filtering with year index without sharedscan: " + elapsedTime + " nanoseconds");
+        long timeNoIndexNoSharedScan = endTime - startTime;
+        System.out.println("Elapsed time for filtering without year index without sharedscan: " + timeNoIndexNoSharedScan + " nanoseconds");
 
-        // Use the results from year index method (more efficient)
-        if (!filterPricesWithYearIndexSharedScan.isEmpty()) {
+        // Determine the fastest filtering method
+        long bestTime = timeSharedScan;
+        List<Integer> bestResult = filterPricesWithYearIndexSharedScan;
+        String bestMethod = "yearIndexSharedScan";
+        if (timeNoSharedScan < bestTime) {
+            bestTime = timeNoSharedScan;
+            bestResult = filterPricesWithYearIndex;
+            bestMethod = "yearIndexNoSharedScan";
+        }
+        if (timeNoIndexSharedScan < bestTime) {
+            bestTime = timeNoIndexSharedScan;
+            bestResult = filterPricesWithoutYearIndexSharedScan;
+            bestMethod = "noIndexSharedScan";
+        }
+        if (timeNoIndexNoSharedScan < bestTime) {
+            bestTime = timeNoIndexNoSharedScan;
+            bestResult = filterPricesWithoutYearIndex;
+            bestMethod = "noIndexNoSharedScan";
+        }
+        System.out.println("\nFastest method: " + bestMethod + " (" + bestTime + " ns)");
+        if (!bestResult.isEmpty()) {
             // Compute Statistics
-            double minPrice = storage.getDataAnalyzer().getMinPrice(filterPricesWithYearIndexSharedScan);
-            double avgPrice = storage.getDataAnalyzer().getAveragePrice(filterPricesWithYearIndexSharedScan);
-            double stdDev = storage.getDataAnalyzer().getStdDev(filterPricesWithYearIndexSharedScan);
-            double minPricePerSqm = storage.getDataAnalyzer().getMinPricePerSqm(filterPricesWithYearIndexSharedScan);
-            
+            double minPrice = storage.getDataAnalyzer().getMinPrice(bestResult);
+            double avgPrice = storage.getDataAnalyzer().getAveragePrice(bestResult);
+            double stdDev = storage.getDataAnalyzer().getStdDev(bestResult);
+            double minPricePerSqm = storage.getDataAnalyzer().getMinPricePerSqm(bestResult);
             // Generate CSV for the target town
             generateCSV(matricNo, targetYear, month, targetTown, minPrice, avgPrice, stdDev, minPricePerSqm);
         }

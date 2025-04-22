@@ -32,6 +32,13 @@ public class ColumnarStorage {
             writeColumnToFile(outputDir + "/towns.txt", dataAnalyzer.getTowns());
             writeColumnToFile(outputDir + "/floor_areas.txt", dataAnalyzer.getFloorAreas());
             writeColumnToFile(outputDir + "/resale_prices.txt", dataAnalyzer.getResalePrices());
+            dataAnalyzer.buildYearMonthTownIndex();
+            // Debug
+            // Check output directory for composite index
+            // System.err.println("composite index file: " + outputDir + "/composite_index.txt");
+            // Write composite index to file
+            // dataAnalyzer.writeCompositeIndexToFile(outputDir + "/composite_index.txt");
+
             
             System.out.println("Column store created successfully in " + outputDir);
         } catch (IOException e) {

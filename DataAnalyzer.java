@@ -134,18 +134,18 @@ public class DataAnalyzer {
         return filtered;
     }
 
-
-
+    // Build composite key index for year, month, and town
     public void buildYearMonthTownIndex() {
         for (int i = 0; i < months.size(); i++) {
             String[] parts = months.get(i).split("-");
-            if (parts.length != 2) continue;
+            if (parts.length != 2) continue; // Skip invalid month format
             String key = parts[0] + "_" + parts[1] + "_" + towns.get(i);
             yearMonthTownIndex.computeIfAbsent(key, k -> new ArrayList<>()).add(i);
         }
         System.out.println("Composite index built for key format: year_month_town");
     }
 
+    // Filter by month candidates using precomputed month indices (focus on year, month, town)
     public List<Integer> filterWithHashing(String targetTown, int year, int startMonth) {
         int nextMonth = (startMonth == 12) ? 1 : startMonth + 1;
         List<Integer> matched = new ArrayList<>();
@@ -155,8 +155,7 @@ public class DataAnalyzer {
 
         matched.addAll(yearMonthTownIndex.getOrDefault(k1, Collections.emptyList()));
         matched.addAll(yearMonthTownIndex.getOrDefault(k2, Collections.emptyList()));
-
-        matched.removeIf(idx -> floorAreas.get(idx) < 80);
+        matched.removeIf(idx -> floorAreas.get(idx) < 80); // Filter by area
         return matched;
     }
     
@@ -229,7 +228,7 @@ public class DataAnalyzer {
 
     //     return floorAreas.get(idx) >= 80 && inWindow;
     // }
-    // Helper to check date and area criteria
+    // Helper to check date and area criteria, to be used in filter methods
     private boolean matchesWindow(int idx, int year, int startMonth, boolean useYearIndex) {
         String[] parts = months.get(idx).split("-");
         int dataYear  = Integer.parseInt(parts[0]);
@@ -262,6 +261,20 @@ public class DataAnalyzer {
     public List<Double> getResalePrices() {
         return resalePrices;
     }
+
+    public void writeCompositeIndexToFile(String filename) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+            for (Map.Entry<String, List<Integer>> entry : yearMonthTownIndex.entrySet()) {
+                writer.write(entry.getKey() + " : " + entry.getValue());
+                writer.newLine();
+            }
+            System.out.println("Composite index written to " + filename);
+        } catch (IOException e) {
+            System.err.println("Failed to write composite index to file.");
+            e.printStackTrace();
+        }
+    }
+    
     
     // Setters for loading data from column store
     public void setMonths(List<String> months) {

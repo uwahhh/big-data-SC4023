@@ -95,9 +95,6 @@ public class Main {
         long timeNoIndexNoSharedScan = endTime - startTime;
         System.out.println("Elapsed time for filtering without year index without sharedscan: " + timeNoIndexNoSharedScan + " nanoseconds");
 
-        // Use hashing to store the results
-        storage.getDataAnalyzer().buildYearMonthTownIndex();
-
         // Timing in processMatriculationTown
         System.out.println("\nProcessing with hashing index sharedscan:");
         startTime = System.nanoTime();

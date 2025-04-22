@@ -10,16 +10,20 @@ public class Main {
         // Create a ColumnarStorage instance
         ColumnarStorage storage = new ColumnarStorage();
         
-        // Check if column store exists
+        // Check if column store exists and if there are any txt files in the directory
+        // If column store exists, load data from it (faster)
         String columnStoreDir = "column_store";
         File columnStoreFile = new File(columnStoreDir);
-        
-        if (columnStoreFile.exists() && columnStoreFile.isDirectory()) {
-            // If column store exists, load data from it (faster)
+        if (!columnStoreFile.exists()) {
+            columnStoreFile.mkdir(); // Create the directory if it doesn't exist
+        }
+        File[] files = columnStoreFile.listFiles((dir, name) -> name.endsWith(".txt"));
+        if (files != null && files.length > 0) {
+            // If there are txt files, load data from them (faster)
             System.out.println("Loading data from column store...");
             storage.loadColumnStore(columnStoreDir);
         } else {
-            // If column store doesn't exist, load from CSV and create column store
+            // If no txt files, load from CSV and create column store
             System.out.println("Loading data from CSV file...");
             storage.loadCSV("ResalePricesSingapore.csv");
             

@@ -95,25 +95,45 @@ public class Main {
         long timeNoIndexNoSharedScan = endTime - startTime;
         System.out.println("Elapsed time for filtering without year index without sharedscan: " + timeNoIndexNoSharedScan + " nanoseconds");
 
+        // Use hashing to store the results
+        storage.getDataAnalyzer().buildYearMonthTownIndex();
+
+        // Timing in processMatriculationTown
+        System.out.println("\nProcessing with hashing index sharedscan:");
+        startTime = System.nanoTime();
+        List<Integer> filterWithHashing = storage.getDataAnalyzer().filterWithHashing(targetTown, targetYear, month);
+        endTime = System.nanoTime();
+        long timeWithHashing = endTime - startTime;
+        System.out.println("Elapsed time for hashing index sharedscan: " + timeWithHashing + " nanoseconds");
+                
+
         // Determine the fastest filtering method
-        long bestTime = timeSharedScan;
-        List<Integer> bestResult = filterPricesWithYearIndexSharedScan;
-        String bestMethod = "yearIndexSharedScan";
-        if (timeNoSharedScan < bestTime) {
-            bestTime = timeNoSharedScan;
-            bestResult = filterPricesWithYearIndex;
-            bestMethod = "yearIndexNoSharedScan";
+        Map<String, Long> times = new HashMap<>();
+        times.put("yearIndexSharedScan", timeSharedScan);
+        times.put("yearIndexNoSharedScan", timeNoSharedScan);
+        times.put("noIndexSharedScan", timeNoIndexSharedScan);
+        times.put("noIndexNoSharedScan", timeNoIndexNoSharedScan);
+        times.put("hashingIndexSharedScan", timeWithHashing);
+        
+        String bestMethod = null;
+        long bestTime = Long.MAX_VALUE;
+        
+        for (Map.Entry<String, Long> entry : times.entrySet()) {
+            if (entry.getValue() < bestTime) {
+                bestTime = entry.getValue();
+                bestMethod = entry.getKey();
+            }
         }
-        if (timeNoIndexSharedScan < bestTime) {
-            bestTime = timeNoIndexSharedScan;
-            bestResult = filterPricesWithoutYearIndexSharedScan;
-            bestMethod = "noIndexSharedScan";
-        }
-        if (timeNoIndexNoSharedScan < bestTime) {
-            bestTime = timeNoIndexNoSharedScan;
-            bestResult = filterPricesWithoutYearIndex;
-            bestMethod = "noIndexNoSharedScan";
-        }
+        
+        List<Integer> bestResult = switch (bestMethod) {
+            case "yearIndexSharedScan" -> filterPricesWithYearIndexSharedScan;
+            case "yearIndexNoSharedScan" -> filterPricesWithYearIndex;
+            case "noIndexSharedScan" -> filterPricesWithoutYearIndexSharedScan;
+            case "noIndexNoSharedScan" -> filterPricesWithoutYearIndex;
+            case "hashingIndexSharedScan" -> filterWithHashing;
+            default -> Collections.emptyList();
+        };
+        
         System.out.println("\nFastest method: " + bestMethod + " (" + bestTime + " ns)");
         if (!bestResult.isEmpty()) {
             // Compute Statistics

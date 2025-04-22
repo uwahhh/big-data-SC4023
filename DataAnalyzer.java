@@ -5,6 +5,7 @@ public class DataAnalyzer {
     private List<String> months, towns, flat_types, street_name, storey_range, flat_model, block;
     private List<Double> floorAreas, resalePrices, lease_commence_date;
     private Map<String, List<Integer>> ZoneMap;  // Map to store all indexes for each town
+    private Map<String, List<Integer>> yearMonthTownIndex; // Composite key index for year, month, town
 
     public DataAnalyzer() {
         months = new ArrayList<>();
@@ -18,6 +19,7 @@ public class DataAnalyzer {
         lease_commence_date = new ArrayList<>();
         resalePrices = new ArrayList<>();
         ZoneMap = new HashMap<>();
+        yearMonthTownIndex = new HashMap<>();
     }
 
     // Load CSV file with error handling
@@ -130,6 +132,32 @@ public class DataAnalyzer {
         // then keep only the target town
         filtered.removeIf(idx -> !towns.get(idx).equals(targetTown));
         return filtered;
+    }
+
+
+
+    public void buildYearMonthTownIndex() {
+        for (int i = 0; i < months.size(); i++) {
+            String[] parts = months.get(i).split("-");
+            if (parts.length != 2) continue;
+            String key = parts[0] + "_" + parts[1] + "_" + towns.get(i);
+            yearMonthTownIndex.computeIfAbsent(key, k -> new ArrayList<>()).add(i);
+        }
+        System.out.println("Composite index built for key format: year_month_town");
+    }
+
+    public List<Integer> filterWithHashing(String targetTown, int year, int startMonth) {
+        int nextMonth = (startMonth == 12) ? 1 : startMonth + 1;
+        List<Integer> matched = new ArrayList<>();
+
+        String k1 = year + "_" + startMonth + "_" + targetTown;
+        String k2 = year + "_" + nextMonth + "_" + targetTown;
+
+        matched.addAll(yearMonthTownIndex.getOrDefault(k1, Collections.emptyList()));
+        matched.addAll(yearMonthTownIndex.getOrDefault(k2, Collections.emptyList()));
+
+        matched.removeIf(idx -> floorAreas.get(idx) < 80);
+        return matched;
     }
     
     // Filter by month candidates using precomputed month indices (focus on months only)

@@ -37,7 +37,7 @@ public class ColumnarStorage {
             // Check output directory for composite index
             // System.err.println("composite index file: " + outputDir + "/composite_index.txt");
             // Write composite index to file
-            // dataAnalyzer.writeCompositeIndexToFile(outputDir + "/composite_index.txt");
+            dataAnalyzer.writeCompositeIndexToFile(outputDir + "/composite_index.txt");
 
             
             System.out.println("Column store created successfully in " + outputDir);

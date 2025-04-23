@@ -62,6 +62,14 @@ public class Main {
         // Initialize TownZoneMapper
         TownZoneMapper.initialize(storage.getDataAnalyzer().getMonths().toArray(new String[0]));
 
+        // Process using month index with sharedscan
+        System.out.println("\nProcessing with month index with sharedscan:");
+        startTime = System.nanoTime();
+        List<Integer> filterPricesWithMonthIndexSharedScan = storage.getDataAnalyzer().fpMonthIndexSharedScan(targetTown, targetYear, month);
+        endTime = System.nanoTime();
+        long timeMonthShared = endTime - startTime;
+        System.out.println("Elapsed time for filtering with month index with sharedscan: " + timeMonthShared + " nanoseconds");
+        
 
         // Process using year index with sharedscan
         System.out.println("\nProcessing with year index with sharedscan:");
@@ -106,6 +114,7 @@ public class Main {
 
         // Determine the fastest filtering method
         Map<String, Long> times = new HashMap<>();
+        times.put("monthIndexSharedScan", timeMonthShared);
         times.put("yearIndexSharedScan", timeSharedScan);
         times.put("yearIndexNoSharedScan", timeNoSharedScan);
         times.put("noIndexSharedScan", timeNoIndexSharedScan);
@@ -123,6 +132,7 @@ public class Main {
         }
         
         List<Integer> bestResult = switch (bestMethod) {
+            case "monthIndexSharedScan" -> filterPricesWithMonthIndexSharedScan;
             case "yearIndexSharedScan" -> filterPricesWithYearIndexSharedScan;
             case "yearIndexNoSharedScan" -> filterPricesWithYearIndex;
             case "noIndexSharedScan" -> filterPricesWithoutYearIndexSharedScan;

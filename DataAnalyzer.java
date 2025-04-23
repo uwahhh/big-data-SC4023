@@ -62,6 +62,30 @@ public class DataAnalyzer {
         }
     }
     
+            // Get list of resale prices matching criteria using year index (shared scan)
+            public List<Integer> fpMonthIndexSharedScan(String targetTown, int year, int startMonth) {
+                List<Integer> filtered = new ArrayList<>();
+                List<Integer> YearIndices = TownZoneMapper.getYearIndices(year);
+                List<Integer> MonthIndices = TownZoneMapper.getMonthIndices(startMonth);
+               
+                if (MonthIndices == null || MonthIndices.isEmpty()) {
+                    System.out.println("Filtered prices with month index shared scan: 0");
+                    return filtered;
+                }
+                int nextMonth = (startMonth == 12) ? 1 : startMonth + 1; 
+                List<Integer> NextMonthIndices = TownZoneMapper.getMonthIndices(nextMonth);
+                
+                for(int idx: YearIndices) {
+                    if ((MonthIndices.contains(idx) ||NextMonthIndices.contains(idx))&&
+                         (targetTown.equals(towns.get(idx)) && floorAreas.get(idx) >= 80)) {
+                        filtered.add(idx);
+                    }
+                }
+                
+                // System.out.println("Filtered prices with month index shared scan: " + filtered.size());
+                return filtered;
+            }
+        
     // Get list of resale prices matching criteria using year index (shared scan)
     public List<Integer> filterPricesWithYearIndexSharedScan(String targetTown, int year, int startMonth) {
         List<Integer> filtered = new ArrayList<>();

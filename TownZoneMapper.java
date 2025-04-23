@@ -52,20 +52,6 @@ public class TownZoneMapper {
         return monthIndexMap.getOrDefault(month, Collections.emptyList());
     }
 
-    /** @deprecated use getYearIndices(year) instead */
-    @Deprecated
-    public static int getStartIndex(int year) {
-        List<Integer> idx = yearIndexMap.get(year);
-        return (idx == null || idx.isEmpty()) ? -1 : idx.get(0);
-    }
-
-    /** @deprecated use getYearIndices(year) instead */
-    @Deprecated
-    public static int getEndIndex(int year) {
-        List<Integer> idx = yearIndexMap.get(year);
-        return (idx == null || idx.isEmpty()) ? -1 : idx.get(idx.size() - 1);
-    }
-
     public static boolean hasYear(int year) {
         return yearIndexMap.containsKey(year);
     }
